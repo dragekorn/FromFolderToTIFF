@@ -1,0 +1,101 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to TIFF Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Convert Images to TIFF</h2>
+        <p>Enter the list of folder paths, separated by commas:</p>
+        <form action="/generate-tiff" method="post">
+            <div class="form-group">
+                <textarea class="form-control" name="folder_list" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate TIFF</button>
+        </form>
+    </div>
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to TIFF Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Upload Image Folders as ZIP</h2>
+        <form action="/upload-zip" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" class="form-control-file" name="zip_file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload ZIP</button>
+        </form>
+    </div>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to TIFF Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .folder-card {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .folder-name {
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Upload Image Folders as ZIP</h2>
+        <form action="/upload-zip" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" class="form-control-file" name="zip_file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload ZIP</button>
+        </form>
+
+        <h3 class="mt-5">Available Folders</h3>
+        {% for folder, tiff_created in folders_status.items() %}
+        <div class="folder-card">
+            <span class="folder-name">{{ folder }}</span>
+            {% if tiff_created %}
+            <a href="/download-tiff/{{ folder }}" class="btn btn-success">Download TIFF</a>
+            {% else %}
+            <form action="/generate-tiff/{{ folder }}" method="post">
+                <button type="submit" class="btn btn-primary">Make TIFF File</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <!-- <div class="container mt-5">
+        <h2>Download Images from External Source</h2>
+        <form action="/process-external-source" method="post">
+            <div class="form-group">
+                <label for="externalUrl">External Source URL</label>
+                <input type="text" class="form-control" id="externalUrl" name="external_url" placeholder="Enter URL" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Process External Source</button>
+        </form>
+    </div> -->
+</body>
+</html>
+
