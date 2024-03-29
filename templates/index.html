@@ -1,45 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image to TIFF Converter</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2>Convert Images to TIFF</h2>
-        <p>Enter the list of folder paths, separated by commas:</p>
-        <form action="/generate-tiff" method="post">
-            <div class="form-group">
-                <textarea class="form-control" name="folder_list" rows="3" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Generate TIFF</button>
-        </form>
-    </div>
-</body>
-</html> -->
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image to TIFF Converter</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2>Upload Image Folders as ZIP</h2>
-        <form action="/upload-zip" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <input type="file" class="form-control-file" name="zip_file" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload ZIP</button>
-        </form>
-    </div>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,38 +22,98 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Upload Image Folders as ZIP</h2>
+        <h3 class="mt-5">Доступные папки для обработки</h3>
+        {% if folders_status %}
+            {% for folder, tiff_created in folders_status.items() %}
+            <div class="folder-card">
+                <span class="folder-name">{{ folder }}</span>
+                {% if tiff_created %}
+                <a href="/download-tiff/{{ folder }}" class="btn btn-success">Download .tif</a>
+                <form action="/delete-folder/{{ folder }}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Folder</button>
+                </form>
+                {% else %}
+                <form action="/generate-tiff/{{ folder }}" method="post">
+                    <button type="submit" class="btn btn-primary">Make .tif File</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Папок пока нет, воспользуйтесь инструментами ниже, чтобы загрузить изображения для дальнейшей переработки их в .tif файл.</p>
+        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+        {% endwith %}
+    </div>
+    
+    <div class="container mt-5">
+        <h2>Скачивание ресурсов по ссылке с Yandex.Disk</h2>
+        <div id="loading-message" style="display: none;">Сканирую вашу ссылку и скачиваю ресурсы. Страница обновится, как только я закончу работу. Пожалуйста, ожидайте...</div>
+        <form id="download-form">
+            <label for="public-key">Ваша ссылка:</label>
+            <input type="text" id="public-key" name="public-key" required>
+
+          
+            <button type="submit">Скачать</button>
+          </form>
+          <br />
+          <p>или</p>
+          <br />
+          <h2>Загрузите изображения в архиве .zip</h2>
         <form action="/upload-zip" method="post" enctype="multipart/form-data">
             <div class="form-group">
                 <input type="file" class="form-control-file" name="zip_file" required>
             </div>
-            <button type="submit" class="btn btn-primary">Upload ZIP</button>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
         </form>
-
-        <h3 class="mt-5">Available Folders</h3>
-        {% for folder, tiff_created in folders_status.items() %}
-        <div class="folder-card">
-            <span class="folder-name">{{ folder }}</span>
-            {% if tiff_created %}
-            <a href="/download-tiff/{{ folder }}" class="btn btn-success">Download TIFF</a>
-            {% else %}
-            <form action="/generate-tiff/{{ folder }}" method="post">
-                <button type="submit" class="btn btn-primary">Make TIFF File</button>
-            </form>
-            {% endif %}
-        </div>
-        {% endfor %}
     </div>
-    <!-- <div class="container mt-5">
-        <h2>Download Images from External Source</h2>
-        <form action="/process-external-source" method="post">
-            <div class="form-group">
-                <label for="externalUrl">External Source URL</label>
-                <input type="text" class="form-control" id="externalUrl" name="external_url" placeholder="Enter URL" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Process External Source</button>
-        </form>
-    </div> -->
+    <script>
+        const form = document.getElementById('download-form');
+        const loadingMessage = document.getElementById('loading-message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const publicKey = document.getElementById('public-key').value;
+
+            // Скрываем форму и показываем сообщение о загрузке
+            form.style.display = 'none';
+            loadingMessage.style.display = 'block';
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ publicKey })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data.message);
+                    if (data.reload) {
+                        location.reload();
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error('Ошибка при скачивании файлов:', errorData.error);
+                    // В случае ошибки показываем форму снова и скрываем сообщение
+                    form.style.display = 'block';
+                    loadingMessage.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Ошибка при отправке запроса:', error);
+                // В случае ошибки показываем форму снова и скрываем сообщение
+                form.style.display = 'block';
+                loadingMessage.style.display = 'none';
+            }
+        });
+        </script>
 </body>
 </html>
 
